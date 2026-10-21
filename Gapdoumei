@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>夾到未 - 專屬夾日子工具</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter & Noto Sans TC -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        macaron: {
+                            mint: '#A8E6CF',
+                            mintLight: '#E8F8F2',
+                            mintDark: '#38A37F',
+                            lavender: '#E0E7FF',
+                            lavenderDark: '#6366F1',
+                            butter: '#FEF08A',
+                            butterLight: '#FEFCE8',
+                            butterDark: '#D97706',
+                            rose: '#FECDD3',
+                            roseLight: '#FFF1F2',
+                            roseDark: '#E11D48',
+                            cream: '#FAF8F5'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #FAF8F5;
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* Soft custom scrollbar for matrix table */
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 8px;
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #F1F5F9;
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94A3B8;
+        }
+    </style>
+</head>
+<body class="bg-macaron-cream text-slate-700 min-h-screen flex flex-col antialiased selection:bg-macaron-mint flex flex-col">
+
+    <!-- Main Container -->
+    <div id="app" class="flex-grow flex flex-col max-w-4xl w-full mx-auto p-3 sm:p-6">
+        
+        <!-- Header -->
+        <header class="flex items-center justify-between py-3 mb-4 border-b border-slate-200/80">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-gradient-to-br from-macaron-mint to-teal-200 text-teal-800 rounded-2xl flex items-center justify-center font-black text-2xl shadow-sm border border-emerald-100">
+                    🗓️
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold text-slate-800 tracking-tight flex items-center gap-2">
+                        夾到未
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-macaron-mint text-teal-800">馬卡龍版</span>
+                    </h1>
+                    <p class="text-xs text-slate-400 font-medium">專屬朋友圈夾日子神器</p>
+                </div>
+            </div>
+            <div id="userInfoHeader" class="hidden flex items-center gap-2 text-xs sm:text-sm">
+                <span class="bg-macaron-lavender/60 text-slate-700 px-3.5 py-1.5 rounded-2xl border border-indigo-100 font-bold flex items-center gap-2 shadow-sm">
+                    <i class="fa-solid fa-users text-macaron-lavenderDark"></i>
+                    <span id="headerGroupName">--</span>
+                </span>
+                <button id="logoutBtn" class="text-slate-400 hover:text-rose-500 p-2 rounded-xl hover:bg-rose-50 transition-colors" title="登出 / 切換 Group">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- VIEW 1: AUTH / JOIN GROUP -->
+        <section id="authSection" class="my-auto max-w-md w-full mx-auto py-8">
+            <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-100/80 space-y-6">
+                <div class="text-center space-y-2">
+                    <div class="w-16 h-16 bg-macaron-mintLight text-teal-600 rounded-3xl flex items-center justify-center mx-auto text-2xl border border-emerald-100">
+                        <i class="fa-solid fa-people-group"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-slate-800">建立或進入朋友圈</h2>
+                    <p class="text-xs text-slate-400 leading-relaxed max-w-xs mx-auto">同一個朋友圈只需開一次 Group，以後聚會隨時喺裡面開 Event 夾日子！</p>
+                </div>
+
+                <form id="authForm" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Group 名稱 (例如: 大專同學仔 / 班兄弟)</label>
+                        <input type="text" id="inputGroupName" required placeholder="例如：大專六小強" 
+                            class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-macaron-mint focus:border-emerald-300 outline-none text-slate-800 text-sm transition bg-slate-50/50">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Group 密碼 / PIN</label>
+                        <input type="password" id="inputGroupPin" required placeholder="輸入簡單密碼或 4 位 PIN" 
+                            class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-macaron-mint focus:border-emerald-300 outline-none text-slate-800 text-sm transition bg-slate-50/50">
+                    </div>
+
+                    <div id="authError" class="hidden text-xs text-rose-600 font-medium bg-macaron-roseLight p-3 rounded-2xl border border-rose-100 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        <span id="authErrorMsg"></span>
+                    </div>
+
+                    <button type="submit" id="authSubmitBtn" 
+                        class="w-full bg-macaron-mint hover:bg-emerald-300 text-teal-900 font-bold py-3.5 px-4 rounded-2xl shadow-sm transition flex items-center justify-center gap-2 text-sm">
+                        <span>進入朋友圈</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- VIEW 2: MAIN GROUP DASHBOARD -->
+        <main id="mainSection" class="hidden space-y-5">
+            
+            <!-- TOP EVENT BAR / SWITCHER -->
+            <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-3 flex-grow">
+                    <div class="bg-macaron-lavender text-indigo-700 px-3.5 py-2 rounded-2xl text-xs font-bold uppercase tracking-wider shrink-0 hidden sm:block">
+                        目前活動
+                    </div>
+                    <div class="relative flex-grow">
+                        <select id="eventSelect" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm font-bold rounded-2xl px-4 py-3 pr-8 appearance-none focus:ring-2 focus:ring-macaron-mint outline-none cursor-pointer">
+                            <!-- Dynamically filled -->
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs"></i>
+                    </div>
+                </div>
+
+                <button id="btnCreateEvent" class="bg-macaron-mintLight hover:bg-macaron-mint text-teal-800 font-bold px-4 py-3 rounded-2xl border border-emerald-100 text-xs transition flex items-center justify-center gap-2 shrink-0 shadow-sm">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>新增聚會活動</span>
+                </button>
+            </div>
+
+            <!-- EVENT CONTENT (When Events Exist) -->
+            <div id="eventContent" class="space-y-5">
+                
+                <!-- MEMBER SELECTOR & STATUS QUICK TOOLBAR -->
+                <div class="bg-white rounded-3xl p-4 sm:p-5 shadow-sm border border-slate-100/80 space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">請選擇或輸入你嘅名字</label>
+                            <div class="flex items-center gap-2">
+                                <input type="text" id="userNameInput" placeholder="例如: Ah Man / Kelvin" 
+                                    class="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-macaron-mint outline-none w-full sm:w-64">
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs flex-wrap">
+                            <span class="text-slate-400 font-medium">快捷批次:</span>
+                            <button id="btnBatchFull" class="bg-macaron-mintLight hover:bg-macaron-mint text-teal-800 font-bold px-3 py-1.5 rounded-xl border border-emerald-100 transition">
+                                🟢 全部全日 OK
+                            </button>
+                            <button id="btnBatchNone" class="bg-macaron-roseLight hover:bg-macaron-rose text-rose-800 font-bold px-3 py-1.5 rounded-xl border border-rose-100 transition">
+                                🔴 全部唔得
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Legend -->
+                    <div class="flex flex-wrap items-center justify-between text-xs gap-2 text-slate-600 bg-slate-50/70 p-3 rounded-2xl border border-slate-100">
+                        <span class="font-bold text-slate-700">點擊月曆日期切換狀態：</span>
+                        <div class="flex flex-wrap items-center gap-3">
+                            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-macaron-mint border border-teal-300"></span> 🟢 全日 OK</span>
+                            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-sky-300 border border-sky-400"></span> 🌗 半日 OK</span>
+                            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-macaron-butter border border-amber-300"></span> 🟡 唔確定</span>
+                            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-macaron-rose border border-rose-300"></span> 🔴 唔得</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CALENDAR CONTROL & QUICK JUMPS (Oct 2026 - Dec 2027) -->
+                <div class="bg-white rounded-3xl p-4 sm:p-5 shadow-sm border border-slate-100/80 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <button id="btnPrevMonth" class="p-2 hover:bg-slate-100 rounded-xl text-slate-600 transition">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </button>
+                            <h3 id="calendarMonthTitle" class="text-base sm:text-lg font-bold text-slate-800 min-w-[130px] text-center">
+                                2026 年 10 月
+                            </h3>
+                            <button id="btnNextMonth" class="p-2 hover:bg-slate-100 rounded-xl text-slate-600 transition">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                        </div>
+
+                        <!-- Quick range jump -->
+                        <div class="hidden sm:flex items-center gap-1.5 text-xs">
+                            <button data-jump="2026-10" class="btn-jump px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-slate-600 transition">2026 Q4</button>
+                            <button data-jump="2027-01" class="btn-jump px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-slate-600 transition">2027 上半年</button>
+                            <button data-jump="2027-07" class="btn-jump px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-slate-600 transition">2027 下半年</button>
+                        </div>
+                    </div>
+
+                    <!-- Calendar Grid -->
+                    <div>
+                        <!-- Day labels -->
+                        <div class="grid grid-cols-7 gap-1 text-center font-bold text-xs text-slate-400 uppercase py-2">
+                            <div class="text-rose-400">日</div>
+                            <div>一</div>
+                            <div>二</div>
+                            <div>三</div>
+                            <div>四</div>
+                            <div>五</div>
+                            <div class="text-indigo-400">六</div>
+                        </div>
+
+                        <!-- Dates Container -->
+                        <div id="calendarGrid" class="grid grid-cols-7 gap-1.5 text-sm">
+                            <!-- Dynamic Day Cards -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HEATMAP MATRIX & RANKING SECTION -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                    
+                    <!-- Top Candidate Dates Ranking -->
+                    <div class="lg:col-span-1 bg-white rounded-3xl p-5 shadow-sm border border-slate-100/80 flex flex-col justify-between space-y-4">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                    <i class="fa-solid fa-trophy text-amber-400"></i>
+                                    熱門最佳日子排名
+                                </h3>
+                                <span class="text-xs text-slate-400 font-medium" id="totalVotesCount">0 人已填寫</span>
+                            </div>
+                            <div id="topDatesList" class="space-y-2 text-sm">
+                                <p class="text-xs text-slate-400 py-6 text-center">仲未有數據，大家快啲點擊月曆揀日子！</p>
+                            </div>
+                        </div>
+
+                        <!-- WhatsApp Export Button -->
+                        <button id="btnWhatsappShare" class="w-full bg-macaron-mint hover:bg-emerald-300 text-teal-900 font-bold py-3.5 px-4 rounded-2xl shadow-sm transition flex items-center justify-center gap-2 text-xs sm:text-sm mt-4">
+                            <i class="fa-brands fa-whatsapp text-lg"></i>
+                            <span>複製 WhatsApp 排版訊息</span>
+                        </button>
+                    </div>
+
+                    <!-- Member Status Overview Matrix -->
+                    <div class="lg:col-span-2 bg-white rounded-3xl p-5 shadow-sm border border-slate-100/80">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-table-cells text-indigo-400"></i>
+                                成員狀態總覽表 (Heatmap Matrix)
+                            </h3>
+                        </div>
+                        <div class="overflow-x-auto custom-scrollbar border border-slate-100 rounded-2xl">
+                            <table class="w-full text-left text-xs border-collapse" id="matrixTable">
+                                <thead>
+                                    <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold" id="matrixHead">
+                                        <th class="p-3 min-w-[100px] sticky left-0 bg-slate-50 z-10 border-r border-slate-200">成員</th>
+                                        <!-- Dynamic Dates Header -->
+                                    </tr>
+                                </thead>
+                                <tbody id="matrixBody" class="divide-y divide-slate-100">
+                                    <!-- Dynamic Member Rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- EMPTY EVENT STATE -->
+            <div id="emptyEventState" class="hidden bg-white rounded-3xl p-8 text-center border border-slate-100 space-y-3">
+                <div class="w-14 h-14 bg-macaron-mintLight text-teal-600 rounded-3xl flex items-center justify-center mx-auto text-2xl border border-emerald-100">
+                    <i class="fa-regular fa-calendar-plus"></i>
+                </div>
+                <h3 class="font-bold text-slate-800 text-base">目前未有聚會活動</h3>
+                <p class="text-xs text-slate-400 max-w-sm mx-auto">呢個 Group 仲未有任何約會，立即按下方按鈕開個新約會夾時間啦！</p>
+                <button id="btnCreateEventEmpty" class="bg-macaron-mint hover:bg-emerald-300 text-teal-900 font-bold px-5 py-3 rounded-2xl shadow-sm transition text-xs inline-flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>新增第一個聚會</span>
+                </button>
+            </div>
+
+        </main>
+
+        <!-- FOOTER -->
+        <footer class="mt-auto pt-6 pb-2 text-center text-xs text-slate-400 border-t border-slate-200/60">
+            夾到未 GatDowMei &copy; 2026 — 廣東話朋友圈專屬夾日子工具
+        </footer>
+    </div>
+
+    <!-- MODAL: CREATE NEW EVENT -->
+    <div id="createEventModal" class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-xl border border-slate-100 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-slate-800 text-sm">新增聚會活動</h3>
+                <button id="btnCloseModal" class="text-slate-400 hover:text-slate-600 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <form id="createEventForm" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">活動名稱</label>
+                    <input type="text" id="newEventName" required placeholder="例如：10月火鍋聚 / 2027跨年旅行" 
+                        class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-macaron-mint outline-none text-xs text-slate-800">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">簡短備註 (可選)</label>
+                    <input type="text" id="newEventNote" placeholder="例如：Target 尖沙咀區 / 玩兩日一夜" 
+                        class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-macaron-mint outline-none text-xs text-slate-800">
+                </div>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" id="btnCancelModal" class="px-4 py-2.5 rounded-2xl border border-slate-200 text-xs font-bold text-slate-500 hover:bg-slate-50">
+                        取消
+                    </button>
+                    <button type="submit" class="px-5 py-2.5 rounded-2xl bg-macaron-mint hover:bg-emerald-300 text-teal-900 text-xs font-bold shadow-sm">
+                        確認建立
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white text-xs font-semibold px-4 py-3 rounded-2xl shadow-xl transition-all opacity-0 translate-y-3 pointer-events-none z-50 flex items-center gap-2">
+        <i class="fa-solid fa-circle-check text-macaron-mint"></i>
+        <span id="toastMsg">成功更新！</span>
+    </div>
+
+    <!-- FIREBASE MODULES -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase Configuration
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'gatdowmei-app';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "demo-api-key",
+            authDomain: "demo-app.firebaseapp.com",
+            projectId: "demo-app",
+            storageBucket: "demo-app.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // App State
+        let currentUser = null;
+        let currentGroup = null; // { id, name, pin }
+        let currentEvents = []; // Array of event objects
+        let activeEventId = null;
+        let activeEventData = { votes: {} }; // { memberName: { 'YYYY-MM-DD': status } }
+
+        // Calendar state
+        let currentYear = 2026;
+        let currentMonth = 9; // 0-indexed, 9 = October 2026
+
+        // UI Element References
+        const authSection = document.getElementById('authSection');
+        const mainSection = document.getElementById('mainSection');
+        const userInfoHeader = document.getElementById('userInfoHeader');
+        const headerGroupName = document.getElementById('headerGroupName');
+        const authForm = document.getElementById('authForm');
+        const authError = document.getElementById('authError');
+        const authErrorMsg = document.getElementById('authErrorMsg');
+        
+        const eventSelect = document.getElementById('eventSelect');
+        const eventContent = document.getElementById('eventContent');
+        const emptyEventState = document.getElementById('emptyEventState');
+        const userNameInput = document.getElementById('userNameInput');
+
+        const calendarMonthTitle = document.getElementById('calendarMonthTitle');
+        const calendarGrid = document.getElementById('calendarGrid');
+        const topDatesList = document.getElementById('topDatesList');
+        const totalVotesCount = document.getElementById('totalVotesCount');
+
+        const createEventModal = document.getElementById('createEventModal');
+
+        // MACARON STATUS WEIGHTS & STYLES
+        const STATUS_WEIGHTS = {
+            'FULL': 1.0,
+            'HALF': 0.5,
+            'MAYBE': 0.25,
+            'NO': 0
+        };
+
+        const STATUS_STYLES = {
+            'FULL': 'bg-macaron-mint text-teal-900 border-emerald-200 font-bold',
+            'HALF': 'bg-sky-300 text-sky-950 border-sky-400 font-bold',
+            'MAYBE': 'bg-macaron-butter text-amber-900 border-amber-200 font-bold',
+            'NO': 'bg-macaron-rose text-rose-950 border-rose-200 font-bold'
+        };
+
+        const STATUS_LABELS = {
+            'FULL': '🟢 全日 OK',
+            'HALF': '🌗 半日 OK',
+            'MAYBE': '🟡 唔確定',
+            'NO': '🔴 唔得'
+        };
+
+        // Initialize Firebase Authentication
+        async function initAuth() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (err) {
+                console.error("Auth Error:", err);
+            }
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            if (user) {
+                const savedGroup = localStorage.getItem('gdm_group_info');
+                const savedUserName = localStorage.getItem('gdm_user_name');
+
+                if (savedUserName) userNameInput.value = savedUserName;
+
+                if (savedGroup) {
+                    try {
+                        const parsed = JSON.parse(savedGroup);
+                        loginToGroup(parsed.name, parsed.pin, true);
+                    } catch (e) {
+                        localStorage.removeItem('gdm_group_info');
+                    }
+                }
+            }
+        });
+
+        // Toast Utility
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.remove('opacity-0', 'translate-y-3', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-3', 'pointer-events-none');
+            }, 2500);
+        }
+
+        // --- GROUP AUTH & STORAGE ---
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const groupName = document.getElementById('inputGroupName').value.trim();
+            const pin = document.getElementById('inputGroupPin').value.trim();
+
+            if (!groupName || !pin) return;
+            loginToGroup(groupName, pin);
+        });
+
+        async function loginToGroup(groupName, pin, isAutoLogin = false) {
+            if (!currentUser) return;
+
+            const groupDocId = groupName.toLowerCase().replace(/\s+/g, '-');
+            const groupRef = doc(db, 'artifacts', appId, 'public', 'data', 'groups', groupDocId);
+
+            try {
+                const docSnap = await getDoc(groupRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.pin !== pin) {
+                        if (!isAutoLogin) {
+                            authErrorMsg.innerText = "Group 密碼不正確！請重新輸入。";
+                            authError.classList.remove('hidden');
+                        }
+                        return;
+                    }
+                } else {
+                    await setDoc(groupRef, {
+                        name: groupName,
+                        pin: pin,
+                        createdAt: new Date().toISOString()
+                    });
+                }
+
+                currentGroup = { id: groupDocId, name: groupName, pin: pin };
+                localStorage.setItem('gdm_group_info', JSON.stringify(currentGroup));
+
+                authError.classList.add('hidden');
+                authSection.classList.add('hidden');
+                mainSection.classList.remove('hidden');
+                userInfoHeader.classList.remove('hidden');
+                headerGroupName.innerText = groupName;
+
+                subscribeToGroupEvents();
+
+            } catch (err) {
+                console.error("Login Group Error:", err);
+                authErrorMsg.innerText = "網路連線問題，請稍微再試。";
+                authError.classList.remove('hidden');
+            }
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('gdm_group_info');
+            location.reload();
+        });
+
+        userNameInput.addEventListener('input', (e) => {
+            localStorage.setItem('gdm_user_name', e.target.value.trim());
+            renderCalendar();
+            renderMatrix();
+            renderTopDates();
+        });
+
+        // --- REAL-TIME LISTENERS ---
+        let eventsUnsubscribe = null;
+        let activeEventUnsubscribe = null;
+
+        function subscribeToGroupEvents() {
+            if (!currentGroup) return;
+
+            const eventsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'groups', currentGroup.id, 'events');
+
+            if (eventsUnsubscribe) eventsUnsubscribe();
+
+            eventsUnsubscribe = onSnapshot(eventsColRef, (snapshot) => {
+                currentEvents = [];
+                snapshot.forEach(doc => {
+                    currentEvents.push({ id: doc.id, ...doc.data() });
+                });
+
+                currentEvents.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+                updateEventSelectDropdown();
+            }, (error) => {
+                console.error("Events Subscription Error:", error);
+            });
+        }
+
+        function updateEventSelectDropdown() {
+            eventSelect.innerHTML = '';
+
+            if (currentEvents.length === 0) {
+                eventContent.classList.add('hidden');
+                emptyEventState.classList.remove('hidden');
+                return;
+            }
+
+            eventContent.classList.remove('hidden');
+            emptyEventState.classList.add('hidden');
+
+            currentEvents.forEach(ev => {
+                const opt = document.createElement('option');
+                opt.value = ev.id;
+                opt.innerText = ev.name + (ev.note ? ` (${ev.note})` : '');
+                eventSelect.appendChild(opt);
+            });
+
+            if (!activeEventId || !currentEvents.find(e => e.id === activeEventId)) {
+                activeEventId = currentEvents[0].id;
+            }
+
+            eventSelect.value = activeEventId;
+            subscribeToActiveEvent(activeEventId);
+        }
+
+        eventSelect.addEventListener('change', (e) => {
+            activeEventId = e.target.value;
+            subscribeToActiveEvent(activeEventId);
+        });
+
+        function subscribeToActiveEvent(eventId) {
+            if (!currentGroup || !eventId) return;
+
+            const eventDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'groups', currentGroup.id, 'events', eventId);
+
+            if (activeEventUnsubscribe) activeEventUnsubscribe();
+
+            activeEventUnsubscribe = onSnapshot(eventDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    activeEventData = docSnap.data();
+                    if (!activeEventData.votes) activeEventData.votes = {};
+                } else {
+                    activeEventData = { votes: {} };
+                }
+
+                renderCalendar();
+                renderMatrix();
+                renderTopDates();
+            }, (error) => {
+                console.error("Active Event Subscription Error:", error);
+            });
+        }
+
+        // --- CREATE NEW EVENT ---
+        const btnCreateEvent = document.getElementById('btnCreateEvent');
+        const btnCreateEventEmpty = document.getElementById('btnCreateEventEmpty');
+        const btnCloseModal = document.getElementById('btnCloseModal');
+        const btnCancelModal = document.getElementById('btnCancelModal');
+        const createEventForm = document.getElementById('createEventForm');
+
+        function openModal() { createEventModal.classList.remove('hidden'); }
+        function closeModal() { createEventModal.classList.add('hidden'); }
+
+        btnCreateEvent.addEventListener('click', openModal);
+        btnCreateEventEmpty.addEventListener('click', openModal);
+        btnCloseModal.addEventListener('click', closeModal);
+        btnCancelModal.addEventListener('click', closeModal);
+
+        createEventForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('newEventName').value.trim();
+            const note = document.getElementById('newEventNote').value.trim();
+
+            if (!name || !currentGroup) return;
+
+            const newEventId = 'evt-' + Date.now();
+            const eventDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'groups', currentGroup.id, 'events', newEventId);
+
+            try {
+                await setDoc(eventDocRef, {
+                    name: name,
+                    note: note,
+                    createdAt: new Date().toISOString(),
+                    votes: {}
+                });
+
+                activeEventId = newEventId;
+                document.getElementById('newEventName').value = '';
+                document.getElementById('newEventNote').value = '';
+                closeModal();
+                showToast("成功新增約會活動！");
+            } catch (err) {
+                console.error("Create Event Error:", err);
+            }
+        });
+
+        // --- CALENDAR LOGIC (Oct 2026 - Dec 2027) ---
+        document.getElementById('btnPrevMonth').addEventListener('click', () => {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            renderCalendar();
+        });
+
+        document.getElementById('btnNextMonth').addEventListener('click', () => {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            renderCalendar();
+        });
+
+        document.querySelectorAll('.btn-jump').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const [y, m] = e.target.dataset.jump.split('-');
+                currentYear = parseInt(y);
+                currentMonth = parseInt(m) - 1;
+                renderCalendar();
+            });
+        });
+
+        function renderCalendar() {
+            calendarMonthTitle.innerText = `${currentYear} 年 ${currentMonth + 1} 月`;
+            calendarGrid.innerHTML = '';
+
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+            for (let i = 0; i < firstDay; i++) {
+                const empty = document.createElement('div');
+                empty.className = "h-20 bg-slate-50/40 rounded-2xl border border-dashed border-slate-100";
+                calendarGrid.appendChild(empty);
+            }
+
+            const activeUser = userNameInput.value.trim();
+            const votes = activeEventData.votes || {};
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dayOfWeek = new Date(currentYear, currentMonth, day).getDay();
+                const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+                const myStatus = (activeUser && votes[activeUser]) ? votes[activeUser][dateStr] : null;
+
+                let memberCount = 0;
+                let fullOkCount = 0;
+
+                Object.keys(votes).forEach(u => {
+                    const st = votes[u][dateStr];
+                    if (st) {
+                        memberCount++;
+                        if (st === 'FULL') fullOkCount++;
+                    }
+                });
+
+                const cell = document.createElement('div');
+                cell.className = `h-20 p-2 rounded-2xl border flex flex-col justify-between cursor-pointer transition select-none relative ${
+                    isWeekend ? 'bg-indigo-50/20 border-indigo-100/70' : 'bg-white border-slate-100 hover:border-slate-300'
+                }`;
+
+                let statusBadgeHTML = '';
+                if (myStatus) {
+                    statusBadgeHTML = `<span class="px-1.5 py-0.5 rounded-lg text-[10px] ${STATUS_STYLES[myStatus]}">${STATUS_LABELS[myStatus].split(' ')[0]}</span>`;
+                } else {
+                    statusBadgeHTML = `<span class="text-[10px] text-slate-300 hover:text-slate-500 font-medium">+ 標記</span>`;
+                }
+
+                let heatmapHTML = '';
+                if (memberCount > 0) {
+                    heatmapHTML = `
+                        <div class="flex items-center justify-between text-[10px] text-slate-500 font-semibold bg-slate-100/80 px-2 py-0.5 rounded-lg">
+                            <span>👥 ${fullOkCount}/${memberCount}</span>
+                        </div>
+                    `;
+                }
+
+                cell.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <span class="font-extrabold text-xs ${isWeekend ? 'text-indigo-500' : 'text-slate-700'}">${day}</span>
+                        ${statusBadgeHTML}
+                    </div>
+                    ${heatmapHTML}
+                `;
+
+                cell.addEventListener('click', () => {
+                    toggleUserStatusForDate(dateStr);
+                });
+
+                calendarGrid.appendChild(cell);
+            }
+        }
+
+        async function toggleUserStatusForDate(dateStr) {
+            const name = userNameInput.value.trim();
+            if (!name) {
+                alert("請先喺上面輸入或選擇你嘅名字！");
+                userNameInput.focus();
+                return;
+            }
+
+            const statuses = [null, 'FULL', 'HALF', 'MAYBE', 'NO'];
+            const currentVotes = activeEventData.votes || {};
+            const userVotes = currentVotes[name] || {};
+            const currentStatus = userVotes[dateStr] || null;
+
+            const currentIndex = statuses.indexOf(currentStatus);
+            const nextStatus = statuses[(currentIndex + 1) % statuses.length];
+
+            if (!activeEventData.votes) activeEventData.votes = {};
+            if (!activeEventData.votes[name]) activeEventData.votes[name] = {};
+
+            if (nextStatus) {
+                activeEventData.votes[name][dateStr] = nextStatus;
+            } else {
+                delete activeEventData.votes[name][dateStr];
+            }
+
+            saveActiveEventData();
+        }
+
+        async function saveActiveEventData() {
+            if (!currentGroup || !activeEventId) return;
+
+            const eventDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'groups', currentGroup.id, 'events', activeEventId);
+            try {
+                await setDoc(eventDocRef, activeEventData, { merge: true });
+            } catch (e) {
+                console.error("Save Data Error:", e);
+            }
+        }
+
+        // --- BATCH ACTIONS ---
+        document.getElementById('btnBatchFull').addEventListener('click', () => setBatchStatus('FULL'));
+        document.getElementById('btnBatchNone').addEventListener('click', () => setBatchStatus('NO'));
+
+        function setBatchStatus(status) {
+            const name = userNameInput.value.trim();
+            if (!name) {
+                alert("請先喺上面輸入你嘅名字！");
+                userNameInput.focus();
+                return;
+            }
+
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            if (!activeEventData.votes) activeEventData.votes = {};
+            if (!activeEventData.votes[name]) activeEventData.votes[name] = {};
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                activeEventData.votes[name][dateStr] = status;
+            }
+
+            saveActiveEventData();
+            showToast(`已批量設定為: ${STATUS_LABELS[status]}`);
+        }
+
+        // --- MATRIX TABLE ---
+        function renderMatrix() {
+            const matrixHead = document.getElementById('matrixHead');
+            const matrixBody = document.getElementById('matrixBody');
+            
+            matrixHead.innerHTML = `<th class="p-3 min-w-[100px] sticky left-0 bg-slate-50 z-10 border-r border-slate-200">成員</th>`;
+            matrixBody.innerHTML = '';
+
+            const votes = activeEventData.votes || {};
+            const members = Object.keys(votes);
+
+            const dateSet = new Set();
+            members.forEach(m => {
+                Object.keys(votes[m]).forEach(d => dateSet.add(d));
+            });
+
+            const sortedDates = Array.from(dateSet).sort();
+
+            if (sortedDates.length === 0 || members.length === 0) {
+                matrixBody.innerHTML = `<tr><td colspan="10" class="p-4 text-center text-slate-400">尚未有人標記日子</td></tr>`;
+                return;
+            }
+
+            sortedDates.forEach(d => {
+                const th = document.createElement('th');
+                th.className = "p-2.5 text-center min-w-[70px] text-[11px]";
+                th.innerText = d.slice(5);
+                matrixHead.appendChild(th);
+            });
+
+            members.forEach(m => {
+                const tr = document.createElement('tr');
+                let rowHTML = `<td class="p-3 font-bold text-slate-700 sticky left-0 bg-white border-r border-slate-200 z-10">${m}</td>`;
+
+                sortedDates.forEach(d => {
+                    const st = votes[m][d];
+                    if (st) {
+                        rowHTML += `<td class="p-2 text-center"><span class="inline-block px-2 py-0.5 rounded-lg text-[10px] ${STATUS_STYLES[st]}">${STATUS_LABELS[st].split(' ')[0]}</span></td>`;
+                    } else {
+                        rowHTML += `<td class="p-2 text-center text-slate-300">-</td>`;
+                    }
+                });
+
+                tr.innerHTML = rowHTML;
+                matrixBody.appendChild(tr);
+            });
+        }
+
+        // --- TOP DATES RANKING ---
+        function renderTopDates() {
+            const votes = activeEventData.votes || {};
+            const members = Object.keys(votes);
+            totalVotesCount.innerText = `${members.length} 人已填寫`;
+
+            if (members.length === 0) {
+                topDatesList.innerHTML = `<p class="text-xs text-slate-400 py-6 text-center">仲未有數據，大家快啲點擊月曆揀日子！</p>`;
+                return;
+            }
+
+            const dateScores = {};
+
+            members.forEach(m => {
+                Object.keys(votes[m]).forEach(d => {
+                    const st = votes[m][d];
+                    if (!dateScores[d]) {
+                        dateScores[d] = { date: d, score: 0, full: 0, half: 0, maybe: 0, no: 0 };
+                    }
+                    if (st === 'FULL') { dateScores[d].score += 1.0; dateScores[d].full++; }
+                    else if (st === 'HALF') { dateScores[d].score += 0.5; dateScores[d].half++; }
+                    else if (st === 'MAYBE') { dateScores[d].score += 0.25; dateScores[d].maybe++; }
+                    else if (st === 'NO') { dateScores[d].no++; }
+                });
+            });
+
+            const sortedList = Object.values(dateScores)
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 5);
+
+            if (sortedList.length === 0) {
+                topDatesList.innerHTML = `<p class="text-xs text-slate-400 py-6 text-center">仲未有數據</p>`;
+                return;
+            }
+
+            topDatesList.innerHTML = '';
+            sortedList.forEach((item, index) => {
+                const dayOfWeek = ['日', '一', '二', '三', '四', '五', '六'][new Date(item.date).getDay()];
+                const badgeStyle = index === 0 ? 'bg-macaron-butter text-amber-900 font-black' : 'bg-slate-100 text-slate-600 font-bold';
+
+                const div = document.createElement('div');
+                div.className = "p-3 rounded-2xl bg-slate-50/80 border border-slate-100 flex items-center justify-between";
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="w-6 h-6 rounded-xl flex items-center justify-center text-xs ${badgeStyle}">
+                            ${index + 1}
+                        </span>
+                        <div>
+                            <p class="font-bold text-slate-800 text-xs">${item.date} (星期${dayOfWeek})</p>
+                            <p class="text-[10px] text-slate-400">
+                                🟢 ${item.full} | 🌗 ${item.half} | 🔴 ${item.no}
+                            </p>
+                        </div>
+                    </div>
+                    <span class="text-xs font-black text-teal-800 bg-macaron-mintLight border border-emerald-100 px-2.5 py-1 rounded-xl">
+                        ${item.score} 分
+                    </span>
+                `;
+                topDatesList.appendChild(div);
+            });
+        }
+
+        // --- WHATSAPP EXPORT ---
+        document.getElementById('btnWhatsappShare').addEventListener('click', () => {
+            if (!currentGroup || !activeEventId) return;
+
+            const activeEv = currentEvents.find(e => e.id === activeEventId);
+            const evName = activeEv ? activeEv.name : '聚會';
+            const votes = activeEventData.votes || {};
+            const members = Object.keys(votes);
+
+            const dateScores = {};
+            members.forEach(m => {
+                Object.keys(votes[m]).forEach(d => {
+                    const st = votes[m][d];
+                    if (!dateScores[d]) dateScores[d] = { date: d, score: 0, full: [], half: [], no: [] };
+                    if (st === 'FULL') { dateScores[d].score += 1.0; dateScores[d].full.push(m); }
+                    else if (st === 'HALF') { dateScores[d].score += 0.5; dateScores[d].half.push(m); }
+                    else if (st === 'NO') { dateScores[d].no.push(m); }
+                });
+            });
+
+            const top3 = Object.values(dateScores)
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 3);
+
+            let msg = `📢 *【${currentGroup.name}】夾日子投票結果* 📢\n`;
+            msg += `📌 *活動名稱：${evName}*\n`;
+            msg += `👥 已填寫成員 (${members.length}人): ${members.join(', ')}\n\n`;
+
+            if (top3.length === 0) {
+                msg += `暫時仲未有合適日子，大家快啲入嚟填時間啦！\n`;
+            } else {
+                msg += `🏆 *最佳推薦日子 TOP 3：*\n\n`;
+                top3.forEach((item, idx) => {
+                    const dow = ['日', '一', '二', '三', '四', '五', '六'][new Date(item.date).getDay()];
+                    msg += `${idx + 1}. *${item.date} (星期${dow})*\n`;
+                    msg += `   🟢 全日 OK (${item.full.length}人): ${item.full.join(', ') || '無'}\n`;
+                    if (item.half.length > 0) msg += `   🌗 半日 OK (${item.half.length}人): ${item.half.join(', ')}\n`;
+                    if (item.no.length > 0) msg += `   🔴 唔得 (${item.no.length}人): ${item.no.join(', ')}\n`;
+                    msg += `\n`;
+                });
+            }
+
+            msg += `👉 入嚟填時間/睇最新結果：請開啟 「夾到未」 輸入 Group 名: *${currentGroup.name}*`;
+
+            const dummy = document.createElement('textarea');
+            document.body.appendChild(dummy);
+            dummy.value = msg;
+            dummy.select();
+            document.execCommand('copy');
+            document.body.removeChild(dummy);
+
+            showToast("已成功複製 WhatsApp 排版訊息！");
+        });
+
+        initAuth();
+    </script>
+</body>
+</html>
